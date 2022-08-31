@@ -4,7 +4,8 @@ import java.util.Scanner;
 import javax.swing.JOptionPane;
 
 public class client {
-    static String fnam;
+    static String serverIp = "127.0.0.1";
+
     public static void main(String args[]) {
         if (args.length != 1) {
             System.out.println("USAGE: java Client 대화명");
@@ -13,11 +14,11 @@ public class client {
 
         try {
 
-            String serverIp = "127.0.0.1";
             Socket socket = new Socket(serverIp, 7777);
+            Socket socket0 = new Socket("127.0.0.1", 7772);
             System.out.println("서버에 연결되었습니다");
-            Thread sender = new Thread(new ClientSender(socket, args[0]));
-            Thread receiver = new Thread(new ClientReceiver(socket));
+            Thread sender = new Thread(new ClientSender(socket, socket0, args[0]));
+            Thread receiver = new Thread(new ClientReceiver(socket, socket0));
 
             sender.start();
             receiver.start();
@@ -28,15 +29,17 @@ public class client {
 
      static class ClientSender extends Thread  {
         Socket socket;
-        DataOutputStream out;
-        OutputStream out2;
+        Socket socket0;
+       DataOutputStream out;
+       OutputStream out2 ;
         String name;
 
-        ClientSender(Socket socket, String name) {
+        ClientSender(Socket socket,Socket socket0, String name) {
             this.socket = socket;
+            this.socket0 = socket0;
             try {
                 out = new DataOutputStream(socket.getOutputStream());
-                out2 = socket.getOutputStream();
+                out2 = socket0.getOutputStream();
                 this.name = name;
 
             } catch (Exception e) {}
@@ -49,14 +52,14 @@ public class client {
                     out.writeUTF(name);
                 }
 
-                while (out != null || out2 != null) {
+                while (out != null) {
 
                     String str = scanner.nextLine();
                     if (str.equals("Send File")) {
                         String input = JOptionPane.showInputDialog("보내고자 하는 파일 명을 입력해주세요.");
-                        fnam = input;
-                        int sig = 55;
+                        int sig = 5;
                         File file = new File(input);
+                        String who = JOptionPane.showInputDialog("자신의 계정을 적어주세요!");
                         String address = JOptionPane.showInputDialog("누구한테 보낼까요?");
 
                         long fileSize = file.length();
@@ -69,14 +72,14 @@ public class client {
                             System.out.println("해당 파일은 존재하지 않습니다.");
                         else {
                             FileInputStream fis = new FileInputStream(file);
-                            startTime = System.currentTimeMillis();
                             try {
+                                out.writeUTF(address+","+input+","+sig + "," + who );
+
                                 while ((readBytes = fis.read(buffer)) > 0) {
                                     out2.write(buffer, 0, readBytes);
                                     totalReadyBytes += readBytes;
                                     System.out.println("In progress: " + totalReadyBytes + "/" + fileSize + " Byte(s) (" + (totalReadyBytes * 100 / fileSize) + " %)");
                                 }
-                                out.writeUTF(address+","+input+","+sig);
                                 System.out.println("파일 전송이 완료되었습니다.");
                             }catch (Exception e) {
                                 e.printStackTrace();
@@ -95,45 +98,88 @@ public class client {
 
     static class ClientReceiver extends Thread {
         Socket socket;
+        ServerSocket serverSocket;
+        Socket FileSocket;
+        Socket socket0;
         DataInputStream in;
         InputStream in2;
 
-        ClientReceiver(Socket socket) {
+        ClientReceiver(Socket socket, Socket socket0) {
             this.socket = socket;
+            this.socket0 = socket0;
             try {
                 in = new DataInputStream(socket.getInputStream());
-                in2 =  socket.getInputStream();
+                in2 = socket0.getInputStream();
             } catch (IOException e) {
             }
         }
 
-        public synchronized void run() {
-            while (in != null || in2 != null) {
+
+        public void run() {
+            in2.mark(0);
+            while (in != null) {
+                String st = "";
+                int cnt = 0;
                 try {
-                    if (in.readUTF() != null) {
-                        getFile(fnam);
-                        continue;
+                    st = in.readUTF();
+                    String[] arr = st.split(",", 3);
+                    if (st != null) {
+                        GetFile getFile = new GetFile(socket0, in2, arr[1]);
+                        getFile.start();
                     }
-                } catch (Exception e) {
-                } finally {
-                    try{
-                        System.out.println(in.readUTF());
-                    } catch (Exception e){}
+
+                    Initialization init = new Initialization(in2);
+                    init.start();
+                    System.out.println("다운로드가 무사히 완료되었습니다!");
+
+                    } catch(Exception e){
+                        System.out.println(st);
+                    } finally{
+                        cnt++;
+                    }
                 }
             }
+
+    }
+
+    static class GetFile extends Thread {
+        Socket socket;
+        InputStream in;
+        String arr;
+        GetFile(Socket socket, InputStream in, String arr){
+            this.socket = socket;
+            this.in = in;
+            this.arr = arr;
         }
 
-        void getFile(String arr) throws Exception {
+        public void run() {
+            try {
+                FileOutputStream file = new FileOutputStream(arr);
+                byte[] buffer = new byte[10000];
+                int readBytes;
 
-            FileOutputStream file = new FileOutputStream(arr);
-            byte[] buffer = new byte[10000];
-            int readBytes;
+                for (int i = 0; i < 10 ; i++) {
+                    if ((readBytes = in.read(buffer)) != -1) {
+                        file.write(buffer, 0, readBytes);
+                        break;
+                    }
+                }
+                file.close();
+            }catch (Exception e){System.out.println("다운로드중 오류가 발생했어요 ㅠ..");}
+        }
+    }
 
-            while ((readBytes = in2.read(buffer)) != -1) {
-                file.write(buffer, 0, readBytes);
-            }
-            file.close();
+   static class Initialization extends Thread {
+        InputStream in;
 
+        Initialization(InputStream in){
+            this.in = in;
+        }
+
+        public void run() {
+            try {
+                in.reset();
+            } catch (IOException e) {}
         }
     }
 
