@@ -70,7 +70,7 @@ public class client {
 
                         if (!file.exists())
                             System.out.println("해당 파일은 존재하지 않습니다.");
-                        else {
+                        else  {
                             FileInputStream fis = new FileInputStream(file);
                             try {
                                 out.writeUTF(address+","+input+","+sig + "," + who );
@@ -158,12 +158,12 @@ public class client {
                 byte[] buffer = new byte[10000];
                 int readBytes;
 
-                for (int i = 0; i < 10 ; i++) {
+     
                     if ((readBytes = in.read(buffer)) != -1) {
                         file.write(buffer, 0, readBytes);
-                        break;
-                    }
-                }
+                 
+                   }
+     
                 file.close();
             }catch (Exception e){System.out.println("다운로드중 오류가 발생했어요 ㅠ..");}
         }
