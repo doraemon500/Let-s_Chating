@@ -50,9 +50,8 @@ public class server {
         Socket socket1;
         DataInputStream in;
         DataOutputStream out;
-        OutputStream out2;
         InputStream in2;
-
+        OutputStream out2;
 
         ServerReceiver(Socket socket, Socket socket1) {
             this.socket = socket;
@@ -60,8 +59,9 @@ public class server {
             try {
                 in = new DataInputStream((socket.getInputStream()));
                 out = new DataOutputStream((socket.getOutputStream()));
-                out2 = socket1.getOutputStream();
+
                 in2 = socket1.getInputStream();
+                out2 = socket1.getOutputStream();
 
             } catch (IOException e) {
             }
@@ -88,7 +88,7 @@ public class server {
                             String[] arr = st.split(",", 4);
                             if (arr[2].equals("5")) {
                                 BackUpname = arr;
-                                ServerFilereceiever thread = new ServerFilereceiever(socket1,in2,out2, cnt);
+                                ServerFilereceiever thread = new ServerFilereceiever(socket1,in2,out2);
                                 cnt++;
                                 thread.start();
                                 continue;
@@ -112,18 +112,16 @@ public class server {
 
         class ServerFilereceiever extends Thread {
             Socket socket;
-            Socket FileSocket;
             OutputStream out;
             InputStream in0;
-            int cnt;
 
 
-            ServerFilereceiever(Socket socket, InputStream in, OutputStream out, int cnt) {
+            ServerFilereceiever(Socket socket, InputStream in, OutputStream out) {
                 this.socket = socket;
                 try {
                     this.in0 = in;
                     this.out = out;
-                    this.cnt = cnt;
+
 
                 } catch (Exception e) {
                 }
@@ -139,26 +137,18 @@ public class server {
                             String key = (String) it.next();
                             if (key.equals(arr[3])) {
                                 InputStream in = (InputStream) InputStream_client.get(key);
-                                GetFile getFile = new GetFile(arr, in, out);
+                                GetFile getFile = new GetFile(arr, in);
                                 getFile.start();
                                 int cnt = 0;
-                                while (!getFile.isInterrupted()) {//isInterrupted()가 true 일 때 WAITING 상태
-                                    if (cnt <= 10) {
-                                        try {
-                                            Thread.sleep(500);
-                                        } catch (Exception e) {
-                                        }
-                                    } else {
-                                        getFile.stop();
-                                        Initialization init = new Initialization(in);
+                 
+                                        Initialization init = new Initialization(in, getFile);
                                         init.start();
-                                        break;
-                                    }
+                            
                                     cnt++;
-                                }
+                       
                             }
                         }
-                      sendToOne(arr, out);
+                      sendToOne(arr);
                 }catch(Exception e){
                 }
             }
@@ -171,7 +161,7 @@ public class server {
             InputStream in;
 
 
-            GetFile(String[] arr, InputStream in, OutputStream out) {
+            GetFile(String[] arr, InputStream in) {
                 this.arr = arr;
                 try {
                     this.in = in;
@@ -190,12 +180,12 @@ public class server {
                             byte[] buffer = new byte[10000];
                             int readBytes;
 
-                            for (int i = 0; i < 10; i++) {
+             
                                 if ((readBytes = in.read(buffer)) != -1) {
                                     out.write(buffer, 0, readBytes);
-                                    break;
+                           
                                 }
-                            }
+                   
                        }
                     }
 
@@ -207,15 +197,23 @@ public class server {
 
         class Initialization extends Thread {
             InputStream in;
+            GetFile getFile;
 
-            Initialization(InputStream in){
+            Initialization(InputStream in, GetFile getFile){
                 this.in = in;
+                this.getFile = getFile;
             }
 
             public void run() {
                 try {
+                    getFile.join();
                     in.reset();
-                } catch (IOException e) {}
+
+                }  catch (IOException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         synchronized void sendToAll(String msg) {
@@ -230,7 +228,7 @@ public class server {
             }
         }
 
-        void sendToOne(String[] arr, OutputStream out) {
+        void sendToOne(String[] arr) {
             Iterator it = clients.keySet().iterator();
 
             while (it.hasNext()) {
