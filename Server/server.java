@@ -2,7 +2,6 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
-
 public class server {
     HashMap clients;
     HashMap client;
@@ -93,8 +92,10 @@ public class server {
                                 thread.start();
                                 continue;
                             }
-                        } catch (Exception e) {
+                        } catch (SocketException e) {
                             e.printStackTrace();
+                            break;
+                        } catch (ArrayIndexOutOfBoundsException e) {
                         }
                         sendToAll(st);
                     }
@@ -139,13 +140,9 @@ public class server {
                                 InputStream in = (InputStream) InputStream_client.get(key);
                                 GetFile getFile = new GetFile(arr, in);
                                 getFile.start();
-                                int cnt = 0;
-                 
-                                        Initialization init = new Initialization(in, getFile);
-                                        init.start();
-                            
-                                    cnt++;
-                       
+
+                                Initialization init = new Initialization(in, getFile);
+                                init.start();
                             }
                         }
                       sendToOne(arr);
@@ -180,12 +177,11 @@ public class server {
                             byte[] buffer = new byte[10000];
                             int readBytes;
 
-             
-                                if ((readBytes = in.read(buffer)) != -1) {
-                                    out.write(buffer, 0, readBytes);
-                           
-                                }
-                   
+
+                            if ((readBytes = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, readBytes);
+
+                            }
                        }
                     }
 
@@ -251,3 +247,4 @@ public class server {
         }
     }
 }
+
