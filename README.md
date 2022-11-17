@@ -2,6 +2,11 @@
 
 자바를 활용한 간단한 서버와 클라이언트를 구현을 통한 채팅 프로그램입니다!
 
+### Language : JAVA
+### FrameWork : Spring(MAVEN)
+### DB : MySQL
+
+
 # 개발 구현 목표!
 
 목표 하나! 
