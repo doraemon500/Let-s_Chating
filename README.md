@@ -6,6 +6,8 @@
 ### FrameWork : Spring(MAVEN)
 ### DB : MySQL
 
+# 작동 구성 방식
+![HowWork](https://user-images.githubusercontent.com/64678476/202723769-bf66f803-c6ba-47e6-bc88-2d0a14fd07c5.png)
 
 # 개발 구현 목표!
 
