@@ -183,7 +183,7 @@ class SVRGetFile extends Thread {
         IterCallback iterCallback =
                 new IterCallback() {
                     @Override
-                    public Object IteratorCallback(String key) {
+                    public InputStream IteratorCallback(String key) {
                         InputStream in = (InputStream) server.InputStream_client.get(key);
                         it = server.client.keySet().iterator();
                         return in;
@@ -196,7 +196,7 @@ class SVRGetFile extends Thread {
         IterCallback iterCallback =
                 new IterCallback() {
                     @Override
-                    public Object IteratorCallback(String key) {
+                    public OutStream IteratorCallback(String key) {
                         OutputStream out = (OutputStream) server.client.get(key);
                         return out;
                     }
