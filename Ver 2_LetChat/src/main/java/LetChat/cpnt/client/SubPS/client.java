@@ -1,6 +1,5 @@
 package LetChat.cpnt.client.SubPS;
 
-import LetChat.cpnt.client.MainClient;
 import LetChat.cpnt.client.SubPS.FileLabour.GetFileTemplate;
 import LetChat.cpnt.client.SubPS.FileLabour.InitializationTemplate;
 

@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
-import LetChat.cpnt.domain.User;
 import LetChat.cpnt.dao.*;
 
 public class MainServer {

@@ -1,7 +1,6 @@
 package LetChat.cpnt.dao;
 
 import java.util.List;
-import LetChat.cpnt.domain.User;
 
 public interface UserDao {
 

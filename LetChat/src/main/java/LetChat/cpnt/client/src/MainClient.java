@@ -7,8 +7,6 @@ import java.io.*;
 import java.util.Scanner;
 import javax.swing.JOptionPane;
 
-import LetChat.cpnt.domain.User;
-
 public class MainClient {
 
     static String serverIp = "192.168.0.13";//"127.0.0.1"; //"192.168.0.13";
